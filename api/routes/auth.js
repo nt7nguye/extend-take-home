@@ -4,6 +4,7 @@ const fetch = (...args) =>
 
 var express = require('express');
 var common = require('../common');
+var sessionStore = require('../mockSessionStore');
 var router = express.Router();
 
 /* GET home page. */
@@ -11,8 +12,7 @@ router.get('/', function(req, res, next) {
   
 });
 
-// 
-router.post('/signin', function(req, res, next) {
+router.post('/', function(req, res, next) {
   if (!Object.keys(req.body).length || !req.body.email) {
     res.status(400).json({error: "No login email provided"});
   } else if (!req.body.password){
@@ -32,6 +32,13 @@ router.post('/signin', function(req, res, next) {
           res.status(extendRes.status).json({"error": "Incorrect login information"});
         } else {
           const parsedRes = await extendRes.json();
+          const email = parsedRes.email;
+          // Save session 
+          sessionStore[email]=req.session;
+          sessionStore[email].token=parsedRes.token;
+          sessionStore[email].refreshToken=parsedRes.refreshToken;
+
+          // Return basic info
           res.json({
             "firstName": parsedRes.user.firstName,
             "lastName": parsedRes.user.lastName,

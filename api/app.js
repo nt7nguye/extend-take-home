@@ -1,17 +1,26 @@
+require('dotenv').config();
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
+var sessions = require('express-session');
 
-var indexRouter = require('./routes/index');
+var authRouter = require('./routes/auth');
 var cardsRouter = require('./routes/cards');
 var transactionsRouter = require('./routes/transactions');
 
 var app = express();
 
 app.use(cors());
+
+app.use(sessions({
+  secret: process.env.SESSION_SECRET,
+  cookie: {maxAge: 1000 * 60 * 60}, // 1 hour time out
+  resave: false,
+}))
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -23,7 +32,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/api', indexRouter);
+app.use('/api/signin', authRouter);
 app.use('/api/cards', cardsRouter);
 app.use('/api/transactions', transactionsRouter);
 
