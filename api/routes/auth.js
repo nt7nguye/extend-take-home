@@ -2,6 +2,7 @@
 const fetch = (...args) =>
 	import('node-fetch').then(({default: fetch}) => fetch(...args));
 
+var jwt = require('jsonwebtoken');
 var express = require('express');
 var common = require('../common');
 var sessionStore = require('../mockSessionStore');
@@ -26,24 +27,27 @@ router.post('/', function(req, res, next) {
         "password": req.body.password,
       }),
     }
+
     fetch(common.URL+"/signin", options) 
       .then(async (extendRes) => {
         if (extendRes.status!==200){
           res.status(extendRes.status).json({"error": "Incorrect login information"});
         } else {
           const parsedRes = await extendRes.json();
-          const email = parsedRes.email;
+          const email = parsedRes.user.email;
+
           // Save session 
           sessionStore[email]=req.session;
           sessionStore[email].token=parsedRes.token;
           sessionStore[email].refreshToken=parsedRes.refreshToken;
-
+          
           // Return basic info
           res.json({
             "firstName": parsedRes.user.firstName,
             "lastName": parsedRes.user.lastName,
             "email": parsedRes.user.email,
             "phone": parsedRes.user.phone,
+            "token": jwt.sign({"email": email}, process.env.BEARER_TOKEN_SECRET, { expiresIn: '1800s' }),
           });
         }});
   }
