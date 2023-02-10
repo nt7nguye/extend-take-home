@@ -33,7 +33,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/signin', authRouter);
-app.use('/api/cards', cardsRouter);
+app.use('/api/virtualcards', cardsRouter);
 app.use('/api/transactions', transactionsRouter);
 
 // catch 404 and forward to error handler
