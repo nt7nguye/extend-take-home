@@ -8,9 +8,9 @@ var common = require('../common');
 var sessionStore = require('../mockSessionStore');
 var router = express.Router();
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  
+// A simple check to see if user is authenticated
+router.get('/', sessionStore.authenticateToken, function(req, res, next) {
+  res.status(200);
 });
 
 router.post('/', function(req, res, next) {

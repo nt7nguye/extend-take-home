@@ -1,42 +1,46 @@
-import React, { Component } from "react";
-import logo from './logo.svg';
+import React, { useEffect, useState } from "react";
 import './App.css';
+import SignIn from "./components/SignIn";
+import Dashboard from "./components/Dashboard";
+import axios from 'axios';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { CssBaseline, GlobalStyles } from "@mui/material";
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { apiResponse: "" };
+
+export default function App() {
+  const [bearerToken, setBearerToken] = useState('');
+  const [user, setUser] = useState({});
+  const theme = createTheme();
+
+  const auth = async (email, password) => {
+    try {
+      const res = await axios({
+        method: 'post',
+        url: 'http://localhost:9000/api/auth', 
+        data: { email: email, password: password}
+      });
+      setUser(res.data);
+      setBearerToken(res.data.token);
+    } catch (e) {
+      console.log(e);
+    }
   }
 
-  callAPI() {
-      fetch("http://localhost:9000/api/cards")
-          .then(res => res.text())
-          .then(res => this.setState({ apiResponse: res }));
-  }
+  useEffect(() => {
+    auth("", "");
+  }, []);
 
-  componentWillMount() {
-      this.callAPI();
-  }
-  
-  render() {
-    return (
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      {/* <GlobalStyles
+        styles={{
+          body: { backgroundColor: "cyan" }
+        }}
+      /> */}
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p className="App-intro">{this.state.apiResponse}</p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+      {bearerToken===''? <SignIn auth={auth}/>:<Dashboard user={user} bearerToken={bearerToken}/>}
       </div>
-    )
-  }
-  ;
+    </ThemeProvider>
+  );
 }
-
-export default App;
