@@ -5,16 +5,38 @@ import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
-import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { Divider } from "@mui/material";
+import { Divider, Grid, Paper } from "@mui/material";
 import axios from 'axios';
+import { styled } from '@mui/material/styles';
+
+const TxnItem = styled(Paper)(({ theme }) => ({
+  backgroundColor: 'transparent',
+  ...theme.typography.body2,
+  padding: theme.spacing(1),
+  textAlign: 'left',
+  color: 'black',
+  boxShadow: 'none',
+  fontSize: 20,
+}));
+
+
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: 'transparent',
+  ...theme.typography.body2,
+  padding: theme.spacing(1),
+  textAlign: 'left',
+  color: 'whitesmoke',
+  boxShadow: 'none',
+  fontSize: 20,
+}));
+
 
 export default function Dashboard({user, bearerToken}) {
   const [card, setCard] = useState({});
-  const [txn, setTxns] = useState({});
+  const [txns, setTxns] = useState([]);
 
   const retrieveCard = async () => {
     try {
@@ -44,7 +66,7 @@ export default function Dashboard({user, bearerToken}) {
           'Accept': 'application/vnd.paywithextend.v2021-03-12+json',  
         }
       });
-      setTxns(res.data.transattions);
+      setTxns(res.data.transactions);
     } catch (e) {
       console.log(e);
     }
@@ -79,14 +101,41 @@ export default function Dashboard({user, bearerToken}) {
         <Box 
           sx={{
             marginTop: 4,
-            display: 'flex'
+            display: 'flex',
+            marginBottom: 5,
           }}
           >
-          <Typography component="h1" variant="h6" align="left" fontWeight={700}>
-            Your cards
+          <Typography sx={{flexGrow: 1 }} component="h1" variant="h6" align="left" fontWeight={700}>
+            Your card: {card.displayName}
           </Typography>
-          
+
+          <Typography sx={{flexGrow: 1}} component="h1" variant="h6" align="left" fontWeight={700}>
+            Balance: US${(card.balanceCents/100)?.toFixed(2)} 
+          </Typography>
         </Box>
+        <Box sx={{ flexGrow: 1, marginBottom: 10 }}>
+            <Grid container spacing={2} style={{
+              backgroundImage: `url(${card.cardImageUrl})`,
+              backgroundSize: 'contain',
+              overflow: 'hidden',
+              width: 500,
+              height: 300,
+            }}>
+              <Grid item xs={12} sx={{ marginTop: 10}}>
+                <Item>{user.firstName} {user.lastName}</Item>
+              </Grid>
+              <Grid item xs={12} sx={{ marginBottom: 0}}>
+                  <Item>xxxx xxxx xxxx {card.last4}</Item>
+              </Grid>
+              <Grid item xs={5} sx={{ marginBottom: 0}}>
+                  <Item>Expires: {card.expires?.slice(0,7)}</Item>
+              </Grid>
+              <Grid item xs={7} sx={{ marginBottom: 0}}>
+                  <Item>CVC: xxx</Item>
+              </Grid>
+            </Grid>
+        </Box>
+
         <Divider/> 
         <Box 
           sx={{
@@ -97,8 +146,39 @@ export default function Dashboard({user, bearerToken}) {
           <Typography component="h1" variant="h6" align="left" fontWeight={700}>
             Your transactions
           </Typography>
-          
         </Box>
+        <Box sx={{flexGrow:1}}>
+          <Grid container spacing={2} style={{}}>
+            <Grid item xs={3}>
+              <TxnItem>Date</TxnItem>  
+            </Grid>
+            <Grid item xs={3}>
+              <TxnItem>Merchant</TxnItem>  
+            </Grid>
+            <Grid item xs={3}>
+              <TxnItem>References</TxnItem>  
+            </Grid>
+            <Grid item xs={3}>
+              <TxnItem>Amount</TxnItem>  
+            </Grid>
+          {txns?.map((txn) => {return (
+            <>
+             <Grid item xs={3}>
+              <TxnItem>{txn.authoredAt?.slice(0,10)}</TxnItem>  
+            </Grid>
+            <Grid item xs={3}>
+              <TxnItem>{txn.merchantName}</TxnItem>  
+            </Grid>
+            <Grid item xs={3}>
+              <TxnItem>- -</TxnItem>  
+            </Grid>
+            <Grid item xs={3}>
+              <TxnItem>US${(txn.clearingBillingAmountCents/100)?.toFixed(2)} USD</TxnItem>  
+            </Grid> 
+            </>
+          );})}
+          </Grid> 
+       </Box>
       </Box>
     </Container>
   );
